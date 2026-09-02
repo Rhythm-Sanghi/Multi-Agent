@@ -91,6 +91,3 @@ iteration, and worth mentioning briefly in the report as "environment friction,
 not agent friction."
 
 Review Agent's addition produced two real fixes (SQL injection pattern, PUT validation gap) and correctly surfaced the scope.md drift as a human decision rather than either ignoring it or trying to resolve it itself. The two-round review cycle (CHANGES REQUESTED → fixes → APPROVED) is good evidence the feedback loop pattern works, not just the linear pipeline.
-
-
-Debug Agent, tested against a deliberately introduced bug (DELETE returning 200 instead of 204), correctly classified it as APP_BUG, found two separate locations needing the same fix (not just the more obvious one), and gave Coding Agent a precise two-line fix instruction rather than a vague error dump. This is the strongest evidence in the whole project that a dedicated diagnosis step adds real value over just forwarding raw test output.
