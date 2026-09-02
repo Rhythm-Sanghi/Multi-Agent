@@ -1,23 +1,22 @@
 import pytest
 from fastapi.testclient import TestClient
 
-import app.database as db_module
-from app.database import init_db
-from app.main import app
+import app.main as main_module
+from app.main import app, _init_db
 
 
 @pytest.fixture()
 def client(tmp_path, monkeypatch):
     """Return a TestClient backed by a fresh throwaway SQLite database."""
     test_db = str(tmp_path / "test_todos.db")
-    monkeypatch.setattr(db_module, "DB_PATH", test_db)
-    init_db(test_db)
+    monkeypatch.setattr(main_module, "DB_PATH", test_db)
+    _init_db(test_db)
     with TestClient(app) as c:
         yield c
 
 
 # ---------------------------------------------------------------------------
-# Tests — one per endpoint (happy path)
+# POST /todos — happy path
 # ---------------------------------------------------------------------------
 
 def test_create_todo(client):
@@ -29,6 +28,10 @@ def test_create_todo(client):
     assert isinstance(data["id"], int)
 
 
+# ---------------------------------------------------------------------------
+# GET /todos — happy path
+# ---------------------------------------------------------------------------
+
 def test_list_todos(client):
     client.post("/todos", json={"title": "Task A"})
     resp = client.get("/todos")
@@ -38,12 +41,26 @@ def test_list_todos(client):
     assert items[0]["title"] == "Task A"
 
 
+# ---------------------------------------------------------------------------
+# GET /todos/{id} — happy path + 404
+# ---------------------------------------------------------------------------
+
 def test_get_todo(client):
     created = client.post("/todos", json={"title": "Read docs"}).json()
     resp = client.get(f"/todos/{created['id']}")
     assert resp.status_code == 200
     assert resp.json()["title"] == "Read docs"
 
+
+def test_get_todo_not_found(client):
+    resp = client.get("/todos/9999")
+    assert resp.status_code == 404
+    assert resp.json() == {"detail": "todo not found"}
+
+
+# ---------------------------------------------------------------------------
+# PUT /todos/{id} — happy path + 404
+# ---------------------------------------------------------------------------
 
 def test_update_todo(client):
     created = client.post("/todos", json={"title": "Old title"}).json()
@@ -54,7 +71,33 @@ def test_update_todo(client):
     assert data["done"] is True
 
 
+def test_update_todo_not_found(client):
+    resp = client.put("/todos/9999", json={"title": "x"})
+    assert resp.status_code == 404
+    assert resp.json() == {"detail": "todo not found"}
+
+
+# ---------------------------------------------------------------------------
+# DELETE /todos/{id} — happy path + 404
+# ---------------------------------------------------------------------------
+
 def test_delete_todo(client):
     created = client.post("/todos", json={"title": "To delete"}).json()
     resp = client.delete(f"/todos/{created['id']}")
     assert resp.status_code == 204
+
+
+def test_delete_todo_not_found(client):
+    resp = client.delete("/todos/9999")
+    assert resp.status_code == 404
+    assert resp.json() == {"detail": "todo not found"}
+
+
+# ---------------------------------------------------------------------------
+# Smoke test: GET /todos returns item just created by POST
+# ---------------------------------------------------------------------------
+
+def test_post_then_list_returns_item(client):
+    client.post("/todos", json={"title": "Smoke test item"})
+    items = client.get("/todos").json()
+    assert any(i["title"] == "Smoke test item" for i in items)

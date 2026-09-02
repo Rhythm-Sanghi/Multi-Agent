@@ -1,19 +1,83 @@
+import sqlite3
 from contextlib import asynccontextmanager
+from pathlib import Path
+from typing import Optional
 
 from fastapi import FastAPI, HTTPException, Response, status
+from pydantic import BaseModel, ConfigDict, field_validator
 
-import app.database as _db
-from app.schemas import TodoCreate, TodoOut, TodoUpdate
+# ---------------------------------------------------------------------------
+# Configuration
+# ---------------------------------------------------------------------------
 
+DB_PATH = str(Path(__file__).parent / "todos.db")
+
+
+# ---------------------------------------------------------------------------
+# Pydantic schemas
+# ---------------------------------------------------------------------------
+
+class TodoCreate(BaseModel):
+    title: str
+
+    @field_validator("title")
+    @classmethod
+    def title_not_empty(cls, v: str) -> str:
+        if not v.strip():
+            raise ValueError("title must not be empty")
+        return v
+
+
+class TodoUpdate(BaseModel):
+    title: Optional[str] = None
+    done: Optional[bool] = None
+
+
+class TodoOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    title: str
+    done: bool
+
+
+# ---------------------------------------------------------------------------
+# Database helpers
+# ---------------------------------------------------------------------------
+
+def _init_db(path: str = DB_PATH) -> None:
+    """Create the todos table if it does not already exist."""
+    conn = sqlite3.connect(path)
+    try:
+        conn.execute(
+            """
+            CREATE TABLE IF NOT EXISTS todos (
+                id    INTEGER PRIMARY KEY AUTOINCREMENT,
+                title TEXT    NOT NULL,
+                done  INTEGER NOT NULL DEFAULT 0
+            )
+            """
+        )
+        conn.commit()
+    finally:
+        conn.close()
+
+
+def _get_conn() -> sqlite3.Connection:
+    """Open and return a SQLite connection with row_factory set."""
+    conn = sqlite3.connect(DB_PATH)
+    conn.row_factory = sqlite3.Row
+    return conn
+
+
+# ---------------------------------------------------------------------------
+# Application
+# ---------------------------------------------------------------------------
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    _db.init_db()
+    _init_db(DB_PATH)
     yield
-
-
-def get_db():
-    return _db.get_db(_db.DB_PATH)
 
 
 app = FastAPI(title="Todo API", lifespan=lifespan)
@@ -24,7 +88,7 @@ app = FastAPI(title="Todo API", lifespan=lifespan)
 # ---------------------------------------------------------------------------
 @app.post("/todos", response_model=TodoOut, status_code=status.HTTP_201_CREATED)
 def create_todo(payload: TodoCreate):
-    conn = get_db()
+    conn = _get_conn()
     try:
         cursor = conn.execute(
             "INSERT INTO todos (title) VALUES (?)", (payload.title,)
@@ -43,7 +107,7 @@ def create_todo(payload: TodoCreate):
 # ---------------------------------------------------------------------------
 @app.get("/todos", response_model=list[TodoOut])
 def list_todos():
-    conn = get_db()
+    conn = _get_conn()
     try:
         rows = conn.execute("SELECT id, title, done FROM todos").fetchall()
     finally:
@@ -56,7 +120,7 @@ def list_todos():
 # ---------------------------------------------------------------------------
 @app.get("/todos/{id}", response_model=TodoOut)
 def get_todo(id: int):
-    conn = get_db()
+    conn = _get_conn()
     try:
         row = conn.execute(
             "SELECT id, title, done FROM todos WHERE id = ?", (id,)
@@ -80,13 +144,13 @@ def update_todo(id: int, payload: TodoUpdate):
         fields["done"] = int(payload.done)
 
     if not fields:
-        # Nothing to update — just return the current state (or 404)
+        # No-op update — return current state (or 404 if missing)
         return get_todo(id)
 
     set_clause = ", ".join(f"{col} = ?" for col in fields)
     values = list(fields.values()) + [id]
 
-    conn = get_db()
+    conn = _get_conn()
     try:
         conn.execute(f"UPDATE todos SET {set_clause} WHERE id = ?", values)
         conn.commit()
@@ -106,7 +170,7 @@ def update_todo(id: int, payload: TodoUpdate):
 # ---------------------------------------------------------------------------
 @app.delete("/todos/{id}", status_code=status.HTTP_204_NO_CONTENT)
 def delete_todo(id: int):
-    conn = get_db()
+    conn = _get_conn()
     try:
         row = conn.execute(
             "SELECT id FROM todos WHERE id = ?", (id,)
