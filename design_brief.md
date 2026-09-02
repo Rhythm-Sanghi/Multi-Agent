@@ -13,15 +13,15 @@ A FastAPI-based REST API backed by a single SQLite file that exposes five CRUD e
 |---------|-----------|------------------------------------|
 | `id`    | `INTEGER` | Primary key, auto-increment        |
 | `title` | `TEXT`    | Not null, non-empty string         |
-| `done`  | `BOOLEAN` | Not null, default `false`          |
+| `done`  | `INTEGER` | Not null, default `0` (SQLite has no native BOOLEAN; store as `0`/`1`) |
 
 ### Pydantic schemas (request/response)
 
-| Schema           | Fields                                    | Used by                      |
-|------------------|-------------------------------------------|------------------------------|
-| `TodoCreate`     | `title: str`                              | `POST /todos`                |
-| `TodoUpdate`     | `title: Optional[str]`, `done: Optional[bool]` | `PUT /todos/{id}`       |
-| `TodoResponse`   | `id: int`, `title: str`, `done: bool`     | All responses                |
+| Schema           | Fields                                    | Notes                                                  | Used by              |
+|------------------|-------------------------------------------|--------------------------------------------------------|----------------------|
+| `TodoCreate`     | `title: str`                              | —                                                      | `POST /todos`        |
+| `TodoUpdate`     | `title: Optional[str]`, `done: Optional[bool]` | Both fields optional                             | `PUT /todos/{id}`    |
+| `TodoResponse`   | `id: int`, `title: str`, `done: bool`     | `done` is read from the DB as `INTEGER` `0`/`1` and converted to `bool` by this schema | All responses |
 
 ---
 
@@ -43,10 +43,10 @@ A FastAPI-based REST API backed by a single SQLite file that exposes five CRUD e
 |------------------|----------------------------------------------------------------------|
 | `fastapi`        | Framework specified in scope                                         |
 | `uvicorn`        | Standard ASGI server for running FastAPI locally                     |
-| `sqlalchemy`     | SQLite ORM; provides table definition, session management, and queries without an external DB service |
+| `sqlite3`        | Python stdlib module; no install needed. Used directly for all DB access — no ORM, no query builder. |
 | `pydantic`       | Bundled with FastAPI; used for request/response schema validation     |
 
-No additional libraries are needed. Do **not** add `alembic`, `databases`, `asyncpg`, or any other DB layer.
+No additional libraries are needed. Do **not** add `sqlalchemy`, `alembic`, `databases`, `asyncpg`, or any other ORM, migration tool, or DB layer.
 
 ---
 
@@ -61,7 +61,7 @@ No additional libraries are needed. Do **not** add `alembic`, `databases`, `asyn
 | `DELETE /todos/{id}` with non-existent id        | Return `404` with `{"detail": "todo not found"}`        |
 | `PUT` with `done` supplied as a non-boolean      | FastAPI/Pydantic returns `422` — no custom handling needed |
 | `id` path parameter is not an integer            | FastAPI returns `422` automatically — no custom handling needed |
-| SQLite file does not exist on first run          | SQLAlchemy `create_all()` at startup creates the file and table automatically |
+| SQLite file does not exist on first run          | A startup function calls `sqlite3.connect(DB_PATH)` and runs `CREATE TABLE IF NOT EXISTS todos (...)` — file and table are created automatically |
 
 ---
 
