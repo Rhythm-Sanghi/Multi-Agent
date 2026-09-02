@@ -1,3 +1,5 @@
+![Tests](https://github.com/Rhythm-Sanghi/Multi-Agent/actions/workflows/tests.yml/badge.svg)
+
 # Todo API
 
 A minimal REST API for managing a to-do list, built with FastAPI and SQLite. No authentication, no external services — just a single SQLite file and a running Python process.
