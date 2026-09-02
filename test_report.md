@@ -11,7 +11,7 @@
 
 | Result | Count |
 |--------|-------|
-| Passed | 11    |
+| Passed | 13    |
 | Failed | 0     |
 | Errors | 0     |
 
@@ -24,6 +24,7 @@
 | Test | Result |
 |------|--------|
 | `test_create_todo` — returns 201, correct `title`, `done=false`, integer `id` | ✅ PASS |
+| `test_create_todo_title_too_long` — title of 201 chars returns 422 | ✅ PASS |
 
 ### `GET /todos`
 
@@ -44,6 +45,7 @@
 |------|--------|
 | `test_update_todo` — returns 200, updated `title` and `done` reflected in response | ✅ PASS |
 | `test_update_todo_not_found` — returns 404 `{"detail": "todo not found"}` for unknown id | ✅ PASS |
+| `test_update_todo_title_too_long` — title of 201 chars returns 422 | ✅ PASS |
 
 ### `DELETE /todos/{id}`
 
@@ -67,6 +69,17 @@
 
 ---
 
+## Validation coverage (title length)
+
+The two new tests confirm the `max_length=200` constraint added to `TodoCreate` and `TodoUpdate`:
+
+| Scenario | Expected | Actual |
+|----------|----------|--------|
+| `POST /todos` with 201-char title | `422` | `422` ✅ |
+| `PUT /todos/{id}` with 201-char title | `422` | `422` ✅ |
+
+---
+
 ## Warnings (non-failing)
 
 - `PendingDeprecationWarning` from `starlette.formparsers`: use `import python_multipart`. Comes from the installed Starlette version; unrelated to this codebase.
@@ -80,4 +93,4 @@ Neither warning indicates a defect.
 
 **PASS — ready to merge.**
 
-All 6 endpoints (including `PATCH /todos/{id}/toggle`) have passing happy-path tests. All 404 paths are covered. The `POST` → `GET` smoke test required by `docs/scope.md` passes.
+All 6 endpoints have passing happy-path tests. All 404 paths are covered. Title length validation (`≤ 200 chars`) is confirmed on both `POST` and `PUT`. The `POST` → `GET` smoke test required by `docs/scope.md` passes.
