@@ -31,7 +31,7 @@ A REST API for managing a to-do list. Nothing else.
 Todo:
 - `id`: Unique identifier
 - `title`: Required string, maximum 200 characters
-- `completed`: Boolean completion status
+- `done`: Boolean completion status
 
 ### Todo object shape
 ```json
