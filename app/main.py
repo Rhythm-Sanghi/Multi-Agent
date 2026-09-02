@@ -32,6 +32,13 @@ class TodoUpdate(BaseModel):
     title: Optional[str] = Field(default=None, max_length=200)
     done: Optional[bool] = None
 
+    @field_validator("title")
+    @classmethod
+    def title_not_empty(cls, v: Optional[str]) -> Optional[str]:
+        if v is not None and not v.strip():
+            raise ValueError("title must not be empty")
+        return v
+
 
 class TodoOut(BaseModel):
     model_config = ConfigDict(from_attributes=True)
@@ -137,22 +144,30 @@ def get_todo(id: int):
 # ---------------------------------------------------------------------------
 @app.put("/todos/{id}", response_model=TodoOut)
 def update_todo(id: int, payload: TodoUpdate):
-    fields = {}
-    if payload.title is not None:
-        fields["title"] = payload.title
-    if payload.done is not None:
-        fields["done"] = int(payload.done)
+    has_title = payload.title is not None
+    has_done = payload.done is not None
 
-    if not fields:
+    if not has_title and not has_done:
         # No-op update — return current state (or 404 if missing)
         return get_todo(id)
 
-    set_clause = ", ".join(f"{col} = ?" for col in fields)
-    values = list(fields.values()) + [id]
-
     conn = _get_conn()
     try:
-        conn.execute(f"UPDATE todos SET {set_clause} WHERE id = ?", values)
+        if has_title and has_done:
+            conn.execute(
+                "UPDATE todos SET title = ?, done = ? WHERE id = ?",
+                (payload.title, int(payload.done), id),
+            )
+        elif has_title:
+            conn.execute(
+                "UPDATE todos SET title = ? WHERE id = ?",
+                (payload.title, id),
+            )
+        else:
+            conn.execute(
+                "UPDATE todos SET done = ? WHERE id = ?",
+                (int(payload.done), id),
+            )
         conn.commit()
         row = conn.execute(
             "SELECT id, title, done FROM todos WHERE id = ?", (id,)

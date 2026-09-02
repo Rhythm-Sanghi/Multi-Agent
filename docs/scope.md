@@ -1,8 +1,6 @@
 # Demo App Scope — To-Do REST API
 
-**Status:** LOCKED. Do not add features beyond what's listed here without team agreement.
-This file is the single source of truth for what gets built. Point every Bob Plan Mode
-session at this file so all agents produce consistent plans.
+**Status:** LOCKED. (v2 — amended to add PATCH /todos/{id}/toggle and title max-length validation, approved after review-agent flagged drift from design_brief.md)
 
 ---
 
@@ -26,6 +24,14 @@ A REST API for managing a to-do list. Nothing else.
 | `GET` | `/todos/{id}` | — | Get a single todo by id. | `200`, returns todo, or `404` if not found |
 | `PUT` | `/todos/{id}` | `{"title"?: string, "done"?: bool}` | Update title and/or done status. Either field optional. | `200`, returns updated todo, or `404` if not found |
 | `DELETE` | `/todos/{id}` | — | Delete a todo by id. | `204`, or `404` if not found |
+| `PATCH` | `/todos/{id}/toggle` | `Toggle the completion status of a todo` |
+
+## Data Model
+
+Todo:
+- `id`: Unique identifier
+- `title`: Required string, maximum 200 characters
+- `completed`: Boolean completion status
 
 ### Todo object shape
 ```json
