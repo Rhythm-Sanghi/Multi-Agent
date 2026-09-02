@@ -77,7 +77,7 @@ customModes:
     groups:
       - read
       - - edit
-        - fileRegex: "^app/test_.*\\.py$"
-          description: pytest test files only
+        - fileRegex: "^(app/test_.*\\.py|test_report\\.md)$"
+          description: pytest test files and test_report.md only
       - execute
       - skill
