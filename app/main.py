@@ -4,7 +4,7 @@ from pathlib import Path
 from typing import Optional
 
 from fastapi import FastAPI, HTTPException, Response, status
-from pydantic import BaseModel, ConfigDict, field_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 # ---------------------------------------------------------------------------
 # Configuration
@@ -18,7 +18,7 @@ DB_PATH = str(Path(__file__).parent / "todos.db")
 # ---------------------------------------------------------------------------
 
 class TodoCreate(BaseModel):
-    title: str
+    title: str = Field(max_length=200)
 
     @field_validator("title")
     @classmethod
@@ -29,7 +29,7 @@ class TodoCreate(BaseModel):
 
 
 class TodoUpdate(BaseModel):
-    title: Optional[str] = None
+    title: Optional[str] = Field(default=None, max_length=200)
     done: Optional[bool] = None
 
 

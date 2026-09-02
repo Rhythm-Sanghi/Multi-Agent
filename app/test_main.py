@@ -28,6 +28,11 @@ def test_create_todo(client):
     assert isinstance(data["id"], int)
 
 
+def test_create_todo_title_too_long(client):
+    resp = client.post("/todos", json={"title": "x" * 201})
+    assert resp.status_code == 422
+
+
 # ---------------------------------------------------------------------------
 # GET /todos — happy path
 # ---------------------------------------------------------------------------
@@ -75,6 +80,12 @@ def test_update_todo_not_found(client):
     resp = client.put("/todos/9999", json={"title": "x"})
     assert resp.status_code == 404
     assert resp.json() == {"detail": "todo not found"}
+
+
+def test_update_todo_title_too_long(client):
+    created = client.post("/todos", json={"title": "Valid title"}).json()
+    resp = client.put(f"/todos/{created['id']}", json={"title": "x" * 201})
+    assert resp.status_code == 422
 
 
 # ---------------------------------------------------------------------------
