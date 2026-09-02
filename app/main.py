@@ -206,7 +206,7 @@ def toggle_todo(id: int):
 # ---------------------------------------------------------------------------
 # DELETE /todos/{id}
 # ---------------------------------------------------------------------------
-@app.delete("/todos/{id}", status_code=status.HTTP_204_NO_CONTENT)
+@app.delete("/todos/{id}", status_code=status.HTTP_200_OK)
 def delete_todo(id: int):
     conn = _get_conn()
     try:
@@ -219,4 +219,4 @@ def delete_todo(id: int):
         conn.commit()
     finally:
         conn.close()
-    return Response(status_code=status.HTTP_204_NO_CONTENT)
+    return Response(status_code=status.HTTP_200_OK)
