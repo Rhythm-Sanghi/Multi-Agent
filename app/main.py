@@ -135,7 +135,7 @@ def get_todo(id: int):
     finally:
         conn.close()
     if row is None:
-        return {"id": None, "title": None, "done": None}
+        raise HTTPException(status_code=404, detail="todo not found")
     return dict(row)
 
 
