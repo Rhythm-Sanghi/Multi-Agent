@@ -33,6 +33,12 @@ def test_create_todo_title_too_long(client):
     assert resp.status_code == 422
 
 
+def test_create_todo_title_exactly_200_chars(client):
+    resp = client.post("/todos", json={"title": "x" * 200})
+    assert resp.status_code == 201
+    assert resp.json()["title"] == "x" * 200
+
+
 # ---------------------------------------------------------------------------
 # GET /todos — happy path
 # ---------------------------------------------------------------------------
@@ -44,6 +50,12 @@ def test_list_todos(client):
     items = resp.json()
     assert len(items) == 1
     assert items[0]["title"] == "Task A"
+
+
+def test_list_todos_empty(client):
+    resp = client.get("/todos")
+    assert resp.status_code == 200
+    assert resp.json() == []
 
 
 # ---------------------------------------------------------------------------
@@ -88,6 +100,15 @@ def test_update_todo_title_too_long(client):
     assert resp.status_code == 422
 
 
+def test_update_todo_empty_body_noop(client):
+    created = client.post("/todos", json={"title": "Stable title"}).json()
+    resp = client.put(f"/todos/{created['id']}", json={})
+    assert resp.status_code == 200
+    data = resp.json()
+    assert data["title"] == "Stable title"
+    assert data["done"] is False
+
+
 # ---------------------------------------------------------------------------
 # DELETE /todos/{id} — happy path + 404
 # ---------------------------------------------------------------------------
@@ -102,6 +123,15 @@ def test_delete_todo_not_found(client):
     resp = client.delete("/todos/9999")
     assert resp.status_code == 404
     assert resp.json() == {"detail": "todo not found"}
+
+
+def test_delete_todo_double_delete(client):
+    created = client.post("/todos", json={"title": "Delete twice"}).json()
+    first = client.delete(f"/todos/{created['id']}")
+    assert first.status_code == 204
+    second = client.delete(f"/todos/{created['id']}")
+    assert second.status_code == 404
+    assert second.json() == {"detail": "todo not found"}
 
 
 # ---------------------------------------------------------------------------
