@@ -92,8 +92,8 @@
 
 ## Warnings (non-failing)
 
-- `PendingDeprecationWarning` from `starlette.formparsers`: use `import python_multipart`. Comes from the installed Starlette version; unrelated to this codebase.
-- `PytestDeprecationWarning` from `pytest-asyncio`: `asyncio_default_fixture_loop_scope` is unset. This project uses no async fixtures; warning has no effect.
+- `PendingDeprecationWarning` from `starlette.formparsers`: unrelated to this codebase.
+- `PytestDeprecationWarning` from `pytest-asyncio`: no async fixtures in use; no effect.
 
 Neither warning indicates a defect.
 
