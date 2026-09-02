@@ -89,3 +89,5 @@ than returning them cleanly. None of this reflects on Bob or the agent pipeline 
 noted here only because it's a realistic account of what actually slowed
 iteration, and worth mentioning briefly in the report as "environment friction,
 not agent friction."
+
+Review Agent's addition produced two real fixes (SQL injection pattern, PUT validation gap) and correctly surfaced the scope.md drift as a human decision rather than either ignoring it or trying to resolve it itself. The two-round review cycle (CHANGES REQUESTED → fixes → APPROVED) is good evidence the feedback loop pattern works, not just the linear pipeline.
