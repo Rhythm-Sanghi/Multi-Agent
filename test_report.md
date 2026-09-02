@@ -3,6 +3,7 @@
 **Date:** 2025-07-14  
 **Test file:** `app/test_main.py`  
 **Runner:** pytest 9.0.2, Python 3.11.9, Windows  
+**Scope reference:** `docs/scope.md` v2 (LOCKED), `design_brief.md`  
 **DB isolation:** per-test throwaway SQLite file via `pytest` `tmp_path` + `monkeypatch`
 
 ---
@@ -69,14 +70,23 @@
 
 ---
 
-## Validation coverage (title length)
+## Coverage against `design_brief.md`
 
-The two new tests confirm the `max_length=200` constraint added to `TodoCreate` and `TodoUpdate`:
-
-| Scenario | Expected | Actual |
-|----------|----------|--------|
-| `POST /todos` with 201-char title | `422` | `422` ✅ |
-| `PUT /todos/{id}` with 201-char title | `422` | `422` ✅ |
+| Requirement | Covered by | Status |
+|---|---|---|
+| `POST /todos` happy path | `test_create_todo` | ✅ |
+| `POST /todos` title max 200 chars | `test_create_todo_title_too_long` | ✅ |
+| `GET /todos` happy path | `test_list_todos` | ✅ |
+| `GET /todos/{id}` happy path | `test_get_todo` | ✅ |
+| `GET /todos/{id}` 404 | `test_get_todo_not_found` | ✅ |
+| `PUT /todos/{id}` happy path | `test_update_todo` | ✅ |
+| `PUT /todos/{id}` 404 | `test_update_todo_not_found` | ✅ |
+| `PUT /todos/{id}` title max 200 chars | `test_update_todo_title_too_long` | ✅ |
+| `DELETE /todos/{id}` happy path | `test_delete_todo` | ✅ |
+| `DELETE /todos/{id}` 404 | `test_delete_todo_not_found` | ✅ |
+| `PATCH /todos/{id}/toggle` happy path (both directions) | `test_toggle_todo` | ✅ |
+| `PATCH /todos/{id}/toggle` 404 | `test_toggle_todo_not_found` | ✅ |
+| Smoke: `POST` then `GET /todos` returns item | `test_post_then_list_returns_item` | ✅ |
 
 ---
 
@@ -93,4 +103,4 @@ Neither warning indicates a defect.
 
 **PASS — ready to merge.**
 
-All 6 endpoints have passing happy-path tests. All 404 paths are covered. Title length validation (`≤ 200 chars`) is confirmed on both `POST` and `PUT`. The `POST` → `GET` smoke test required by `docs/scope.md` passes.
+All 6 endpoints specified in `docs/scope.md` v2 and `design_brief.md` have passing tests. All 404 error paths are covered. Title length validation (≤ 200 chars) is confirmed on both `POST` and `PUT`. The required smoke test passes.

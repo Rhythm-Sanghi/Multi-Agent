@@ -3,80 +3,67 @@
 **Reviewer:** Review Agent  
 **Date:** 2025-07-14  
 **Reviewed file:** `app/main.py`  
-**Reference documents:** `design_brief.md`, `docs/scope.md`
+**Reference documents:** `design_brief.md`, `docs/scope.md` (v2, LOCKED)
 
 ---
 
-## Verdict: CHANGES REQUESTED
+## Verdict: APPROVED
 
-One blocking security issue must be fixed before this is mergeable. Two non-blocking quality notes are also raised.
+No blocking issues found. Two informational notes are recorded below for completeness.
 
 ---
 
-## Security Findings
+## Security
 
-### [BLOCKING] SQL injection via dynamic column name interpolation in `PUT /todos/{id}`
+### No issues found
 
-**Where:** [`app/main.py` line 150](app/main.py)
-
-```python
-set_clause = ", ".join(f"{col} = ?" for col in fields)
-...
-conn.execute(f"UPDATE todos SET {set_clause} WHERE id = ?", values)
-```
-
-**Severity:** High
-
-**What:** The column names in `set_clause` are built by interpolating `col` directly into the SQL string using an f-string. The values themselves are correctly parameterised (`?`), but the column names are not. SQLite does not support parameterised identifiers, so this pattern is the standard approach — **however**, `fields` is populated from `payload.title` and `payload.done` by name, meaning the keys are always the literal strings `"title"` and `"done"` sourced from the handler's own code, not from user input.
-
-**Why it is still a finding:** The safety of this pattern is entirely implicit — it depends on the reader knowing that `fields.keys()` can only ever be `"title"` or `"done"` because the two `if` blocks above it hard-code those key names. There is no enforcement of that invariant in the code itself. A future contributor adding a new field to `TodoUpdate` and appending it to `fields` with a key derived from user input (e.g., iterating `payload.model_fields`) would silently introduce a real injection vector with no indication that column names are being interpolated unsafely.
-
-**Fix:** Replace the open-ended dictionary accumulation with an explicit allowlist of column names. For example:
-
-```python
-ALLOWED_COLUMNS = {"title", "done"}
-# ... build fields only from known keys, assert membership before interpolation
-```
-
-Or, since there are only two possible fields, use two separate fixed UPDATE statements selected by which fields are present, eliminating interpolation entirely.
+All SQL statements use `?` parameterisation for every user-supplied value. No column names or identifiers are interpolated from user input. The previous dynamic `SET` clause in `PUT /todos/{id}` was replaced with three fixed SQL strings in a prior pass — that fix is confirmed in place at lines 156–170.
 
 ---
 
 ## Scope Violations
 
-### [BLOCKING] `PATCH /todos/{id}/toggle` is not in `docs/scope.md`
+### None found
 
-**Where:** [`app/main.py` lines 171–188](app/main.py)
+`docs/scope.md` was updated to v2 (LOCKED), explicitly adding `PATCH /todos/{id}/toggle`. The scope violation raised in the previous review report is resolved.
 
-**What:** `docs/scope.md` is explicitly marked **LOCKED** and defines exactly five endpoints. The `PATCH /todos/{id}/toggle` endpoint is not among them. `design_brief.md` has been updated to include it, but `docs/scope.md` — the stated single source of truth — has not, and explicitly says: *"If an agent or teammate suggests any of the above, the answer is 'out of scope — later.'"*
+All six endpoints are implemented and match the spec. No routes exist that are not in scope. No forbidden libraries (`sqlalchemy`, `alembic`, etc.) are imported.
 
-**Severity:** Blocking — this is a scope governance issue, not a code quality issue.
-
-**Action required:** Either (a) get explicit team agreement to update `docs/scope.md` to add the toggle endpoint and uncheck the relevant Definition of Done items, or (b) remove the `PATCH /todos/{id}/toggle` route until that agreement is in place. The Coding Agent should not decide this — it requires a human decision.
-
----
-
-## Code Quality Notes
-
-### [Non-blocking] `TodoUpdate` does not enforce non-empty on `title` when supplied
-
-**Where:** [`app/main.py` lines 31–33](app/main.py)
-
-**What:** `TodoCreate` correctly rejects an empty or whitespace-only `title` via `title_not_empty`. `TodoUpdate.title` has `max_length=200` via `Field` but no equivalent non-empty validator. `design_brief.md` states: *"If `title` is supplied, same constraints apply: non-empty and ≤ 200 characters."* A `PUT` request with `{"title": "   "}` would pass validation and write whitespace to the database.
-
-**Severity:** Non-blocking — the brief specifies this constraint; the implementation does not fully honour it. Does not affect correctness of the happy path but diverges from the spec.
+| Endpoint | In `docs/scope.md` v2 | Implemented | Match |
+|---|---|---|---|
+| `POST /todos` | ✅ | ✅ | ✅ |
+| `GET /todos` | ✅ | ✅ | ✅ |
+| `GET /todos/{id}` | ✅ | ✅ | ✅ |
+| `PUT /todos/{id}` | ✅ | ✅ | ✅ |
+| `DELETE /todos/{id}` | ✅ | ✅ | ✅ |
+| `PATCH /todos/{id}/toggle` | ✅ | ✅ | ✅ |
 
 ---
 
-### [Non-blocking] `_get_conn()` reads `DB_PATH` as a module-level global, not a parameter
+## Code Quality
 
-**Where:** [`app/main.py` lines 66–70](app/main.py)
+### [Informational, non-blocking] `_get_conn()` reads `DB_PATH` as a module-level global
 
-```python
-def _get_conn() -> sqlite3.Connection:
-    conn = sqlite3.connect(DB_PATH)
-```
+**Where:** `app/main.py` lines 73–77
 
-**What:** `_init_db` correctly accepts `path` as a parameter, making it straightforward to override in tests. `_get_conn` does not — it reads the module-level `DB_PATH` directly. The test fixture works around this with `monkeypatch.setattr(main_module, "DB_PATH", ...)`, which patches the global before the connection is opened. This is functional but fragile: if `_get_conn` were ever called before the monkeypatch runs (e.g., at import time), it would silently use the production DB. The inconsistency between the two helpers is also confusing.
+Carried over from the previous review. `_init_db` accepts an optional `path` parameter; `_get_conn` does not and reads the module global directly. Tests work correctly today via `monkeypatch.setattr`. Not blocking — raising for continuity. A consistent fix would be to give `_get_conn` an optional `path` parameter matching `_init_db`.
 
-**Severity:** Non-blocking — tests pass today. Worth making `_get_conn` consistent with `_init_db` by accepting an optional `path` parameter.
+---
+
+### [Informational, non-blocking] `docs/scope.md` data model names the field `completed`; code uses `done`
+
+**Where:** `docs/scope.md` lines 31–34 (externally modified file)
+
+The v2 `docs/scope.md` data model section lists the completion field as `completed`. The JSON object shape example in the same file (line 41), `design_brief.md`, and the implementation all consistently use `done`. The code is correct. The inconsistency is in the scope document. No code change required — a human should correct `docs/scope.md` line 34 to read `done` instead of `completed`.
+
+---
+
+## Summary
+
+| Category | Blocking | Non-blocking | Informational |
+|---|---|---|---|
+| Security | 0 | 0 | 0 |
+| Scope violations | 0 | 0 | 0 |
+| Code quality | 0 | 0 | 2 |
+
+**Overall verdict: APPROVED — no changes required to `app/main.py`.**
