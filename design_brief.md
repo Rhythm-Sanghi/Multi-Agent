@@ -12,15 +12,15 @@ A FastAPI-based REST API backed by a single SQLite file that exposes five CRUD e
 | Field   | Type      | Constraints                        |
 |---------|-----------|------------------------------------|
 | `id`    | `INTEGER` | Primary key, auto-increment        |
-| `title` | `TEXT`    | Not null, non-empty string         |
+| `title` | `TEXT`    | Not null, non-empty string, max 200 characters |
 | `done`  | `INTEGER` | Not null, default `0` (SQLite has no native BOOLEAN; store as `0`/`1`) |
 
 ### Pydantic schemas (request/response)
 
 | Schema           | Fields                                    | Notes                                                  | Used by              |
 |------------------|-------------------------------------------|--------------------------------------------------------|----------------------|
-| `TodoCreate`     | `title: str`                              | —                                                      | `POST /todos`        |
-| `TodoUpdate`     | `title: Optional[str]`, `done: Optional[bool]` | Both fields optional                             | `PUT /todos/{id}`    |
+| `TodoCreate`     | `title: str`                              | Must be non-empty and ≤ 200 characters; Pydantic raises `422` if violated | `POST /todos` |
+| `TodoUpdate`     | `title: Optional[str]`, `done: Optional[bool]` | If `title` is supplied, same constraints apply: non-empty and ≤ 200 characters | `PUT /todos/{id}` |
 | `TodoResponse`   | `id: int`, `title: str`, `done: bool`     | `done` is read from the DB as `INTEGER` `0`/`1` and converted to `bool` by this schema | All responses |
 
 ---
@@ -55,7 +55,9 @@ No additional libraries are needed. Do **not** add `sqlalchemy`, `alembic`, `dat
 
 | Condition                                        | Expected Behavior                                        |
 |--------------------------------------------------|----------------------------------------------------------|
-| `POST` with missing or empty `title`             | FastAPI/Pydantic returns `422` — no custom handling needed |
+| `POST` with missing or empty `title`             | Pydantic returns `422` — no custom handling needed |
+| `POST` with `title` longer than 200 characters   | Pydantic returns `422` — no custom handling needed |
+| `PUT` with `title` longer than 200 characters    | Pydantic returns `422` — no custom handling needed |
 | `GET /todos/{id}` with non-existent id           | Return `404` with `{"detail": "todo not found"}`        |
 | `PUT /todos/{id}` with non-existent id           | Return `404` with `{"detail": "todo not found"}`        |
 | `PUT /todos/{id}` with neither `title` nor `done` supplied | No fields change; return `200` with unchanged todo (no-op update is acceptable) |
@@ -79,5 +81,5 @@ The following are **forbidden** for this implementation. Do not add them even if
 - Docker / Docker Compose / containerization
 - Deployment or hosting configuration
 - Rate limiting, logging middleware, or observability tooling
-- Input validation beyond "title is a non-empty string" and "done is a boolean"
+- Input validation beyond: `title` is a non-empty string of ≤ 200 characters, and `done` is a boolean
 - Custom `422` error messages (FastAPI default is sufficient)
