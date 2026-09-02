@@ -94,6 +94,28 @@ def test_delete_todo_not_found(client):
 
 
 # ---------------------------------------------------------------------------
+# PATCH /todos/{id}/toggle — happy path + 404
+# ---------------------------------------------------------------------------
+
+def test_toggle_todo(client):
+    created = client.post("/todos", json={"title": "Toggle me"}).json()
+    assert created["done"] is False
+    resp = client.patch(f"/todos/{created['id']}/toggle")
+    assert resp.status_code == 200
+    assert resp.json()["done"] is True
+    # toggle back
+    resp2 = client.patch(f"/todos/{created['id']}/toggle")
+    assert resp2.status_code == 200
+    assert resp2.json()["done"] is False
+
+
+def test_toggle_todo_not_found(client):
+    resp = client.patch("/todos/9999/toggle")
+    assert resp.status_code == 404
+    assert resp.json() == {"detail": "todo not found"}
+
+
+# ---------------------------------------------------------------------------
 # Smoke test: GET /todos returns item just created by POST
 # ---------------------------------------------------------------------------
 

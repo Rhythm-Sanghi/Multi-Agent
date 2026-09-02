@@ -166,6 +166,29 @@ def update_todo(id: int, payload: TodoUpdate):
 
 
 # ---------------------------------------------------------------------------
+# PATCH /todos/{id}/toggle
+# ---------------------------------------------------------------------------
+@app.patch("/todos/{id}/toggle", response_model=TodoOut)
+def toggle_todo(id: int):
+    conn = _get_conn()
+    try:
+        row = conn.execute(
+            "SELECT id, title, done FROM todos WHERE id = ?", (id,)
+        ).fetchone()
+        if row is None:
+            raise HTTPException(status_code=404, detail="todo not found")
+        new_done = 0 if row["done"] else 1
+        conn.execute("UPDATE todos SET done = ? WHERE id = ?", (new_done, id))
+        conn.commit()
+        row = conn.execute(
+            "SELECT id, title, done FROM todos WHERE id = ?", (id,)
+        ).fetchone()
+    finally:
+        conn.close()
+    return dict(row)
+
+
+# ---------------------------------------------------------------------------
 # DELETE /todos/{id}
 # ---------------------------------------------------------------------------
 @app.delete("/todos/{id}", status_code=status.HTTP_204_NO_CONTENT)
