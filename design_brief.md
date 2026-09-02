@@ -1,7 +1,7 @@
 # Design Brief — To-Do REST API
 
 ## Summary
-A FastAPI-based REST API backed by a single SQLite file that exposes five CRUD endpoints for managing to-do items. No auth, no frontend, no external services.
+A FastAPI-based REST API backed by a single SQLite file that exposes five CRUD endpoints plus a toggle action for managing to-do items. No auth, no frontend, no external services.
 
 ---
 
@@ -33,7 +33,8 @@ A FastAPI-based REST API backed by a single SQLite file that exposes five CRUD e
 | `GET`    | `/todos`       | —                                         | `200` + `TodoResponse[]`                | —                         |
 | `GET`    | `/todos/{id}`  | —                                         | `200` + `TodoResponse`                  | `404` `{"detail": "todo not found"}` |
 | `PUT`    | `/todos/{id}`  | `{"title"?: string, "done"?: bool}`       | `200` + `TodoResponse`                  | `404` `{"detail": "todo not found"}` |
-| `DELETE` | `/todos/{id}`  | —                                         | `204` (no body)                         | `404` `{"detail": "todo not found"}` |
+| `DELETE` | `/todos/{id}`        | —                                         | `204` (no body)                         | `404` `{"detail": "todo not found"}` |
+| `PATCH`  | `/todos/{id}/toggle` | —                                         | `200` + `TodoResponse` with `done` flipped | `404` `{"detail": "todo not found"}` |
 
 ---
 
@@ -59,6 +60,7 @@ No additional libraries are needed. Do **not** add `sqlalchemy`, `alembic`, `dat
 | `PUT /todos/{id}` with non-existent id           | Return `404` with `{"detail": "todo not found"}`        |
 | `PUT /todos/{id}` with neither `title` nor `done` supplied | No fields change; return `200` with unchanged todo (no-op update is acceptable) |
 | `DELETE /todos/{id}` with non-existent id        | Return `404` with `{"detail": "todo not found"}`        |
+| `PATCH /todos/{id}/toggle` with non-existent id  | Return `404` with `{"detail": "todo not found"}`        |
 | `PUT` with `done` supplied as a non-boolean      | FastAPI/Pydantic returns `422` — no custom handling needed |
 | `id` path parameter is not an integer            | FastAPI returns `422` automatically — no custom handling needed |
 | SQLite file does not exist on first run          | A startup function calls `sqlite3.connect(DB_PATH)` and runs `CREATE TABLE IF NOT EXISTS todos (...)` — file and table are created automatically |
