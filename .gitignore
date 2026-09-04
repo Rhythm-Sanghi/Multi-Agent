@@ -1,9 +1,4 @@
-# Python cache
 __pycache__/
-*.py[cod]
-
-# Pytest cache
+*.pyc
 .pytest_cache/
-
-# Local database
-app/todos.db
+*.db
