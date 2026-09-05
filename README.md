@@ -4,6 +4,8 @@ A working demonstration of six specialized AI agents collaborating to research, 
 
 We're a team of five, built this on [IBM Bob](https://bob.ibm.com), and every claim below is backed by a file in this repo — not just described.
 
+📄 [How we used IBM Bob](IBM_BOB_USAGE.md)
+
 ---
 
 ## What's actually here
