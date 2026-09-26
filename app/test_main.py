@@ -39,6 +39,12 @@ def test_create_todo_title_exactly_200_chars(client):
     assert resp.json()["title"] == "x" * 200
 
 
+@pytest.mark.parametrize("payload", [{}, {"title": "   "}, {"title": 123}])
+def test_create_todo_rejects_invalid_title(client, payload):
+    resp = client.post("/todos", json=payload)
+    assert resp.status_code == 422
+
+
 # ---------------------------------------------------------------------------
 # GET /todos — happy path
 # ---------------------------------------------------------------------------
@@ -75,6 +81,11 @@ def test_get_todo_not_found(client):
     assert resp.json() == {"detail": "todo not found"}
 
 
+def test_get_todo_rejects_non_integer_id(client):
+    resp = client.get("/todos/not-an-integer")
+    assert resp.status_code == 422
+
+
 # ---------------------------------------------------------------------------
 # PUT /todos/{id} — happy path + 404
 # ---------------------------------------------------------------------------
@@ -97,6 +108,18 @@ def test_update_todo_not_found(client):
 def test_update_todo_title_too_long(client):
     created = client.post("/todos", json={"title": "Valid title"}).json()
     resp = client.put(f"/todos/{created['id']}", json={"title": "x" * 201})
+    assert resp.status_code == 422
+
+
+def test_update_todo_rejects_whitespace_title(client):
+    created = client.post("/todos", json={"title": "Valid title"}).json()
+    resp = client.put(f"/todos/{created['id']}", json={"title": "   "})
+    assert resp.status_code == 422
+
+
+def test_update_todo_rejects_non_boolean_done(client):
+    created = client.post("/todos", json={"title": "Valid title"}).json()
+    resp = client.put(f"/todos/{created['id']}", json={"done": "yes"})
     assert resp.status_code == 422
 
 

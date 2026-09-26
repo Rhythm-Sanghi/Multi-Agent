@@ -29,7 +29,7 @@ Write: review_report.md only
 Execute: none
 
 ## Permission mode
-Read-only (cannot modify code, only report on it)
+Write, scoped to `review_report.md` only; cannot modify application code
 
 ## Model preference
 Strong model — security review benefits from careful reasoning, not a fast/cheap model.

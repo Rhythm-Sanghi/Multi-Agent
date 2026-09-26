@@ -17,11 +17,11 @@ Write `test_report.md` with:
 
 ## Tool access
 - Read: filesystem, design_brief.md, app/ code
-- Write: filesystem (tests only, not app/ source)
+- Write: `app/test_*.py` and `test_report.md` only (never application source)
 - Execute: terminal/test runner (pytest/jest), git (read diff)
 
 ## Permission mode
-Execute (test runner only, no source writes)
+Write and execute, scoped to test files and `test_report.md`; no application-source writes
 
 ## Model preference
 Mid-tier model — test generation from a spec is more mechanical than the

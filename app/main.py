@@ -4,7 +4,7 @@ from pathlib import Path
 from typing import Optional
 
 from fastapi import FastAPI, HTTPException, Response, status
-from pydantic import BaseModel, ConfigDict, Field, field_validator
+from pydantic import BaseModel, ConfigDict, Field, StrictBool, field_validator
 
 # ---------------------------------------------------------------------------
 # Configuration
@@ -30,7 +30,7 @@ class TodoCreate(BaseModel):
 
 class TodoUpdate(BaseModel):
     title: Optional[str] = Field(default=None, max_length=200)
-    done: Optional[bool] = None
+    done: Optional[StrictBool] = None
 
     @field_validator("title")
     @classmethod
@@ -70,9 +70,9 @@ def _init_db(path: str = DB_PATH) -> None:
         conn.close()
 
 
-def _get_conn() -> sqlite3.Connection:
+def _get_conn(path: Optional[str] = None) -> sqlite3.Connection:
     """Open and return a SQLite connection with row_factory set."""
-    conn = sqlite3.connect(DB_PATH)
+    conn = sqlite3.connect(path or DB_PATH)
     conn.row_factory = sqlite3.Row
     return conn
 

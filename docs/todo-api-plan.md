@@ -1,4 +1,6 @@
-# Plan: To-Do REST API (FastAPI + SQLite)
+# Historical Plan: To-Do REST API (FastAPI + SQLite)
+
+> **Status:** Historical planning artifact. It describes the original five-endpoint implementation plan and is retained as workflow evidence. The current source of truth is `docs/scope.md` v2 and `design_brief.md`, which define six endpoints and the final single-file implementation.
 
 ## Top-Level Overview
 

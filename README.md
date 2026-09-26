@@ -1,6 +1,6 @@
 # Multi-Agent AI Software Team — Built on IBM Bob
 
-A working demonstration of six specialized AI agents collaborating to research, build, review, test, debug, and document a piece of software together — not one AI wearing different hats, but six agents with distinct roles, scoped permissions, and real hand-offs between them.
+A working demonstration of six specialized IBM Bob custom modes collaborating to research, build, review, test, debug, and document software. The workflow is manually orchestrated, with distinct roles, scoped permissions, and traceable file-based hand-offs.
 
 We're a team of five, built this on [IBM Bob](https://bob.ibm.com), and every claim below is backed by a file in this repo — not just described.
 
@@ -10,7 +10,7 @@ We're a team of five, built this on [IBM Bob](https://bob.ibm.com), and every cl
 
 ## What's actually here
 
-We built a small REST API for a to-do list. The app is deliberately simple — five CRUD endpoints, one small feature added later — because the app was never the point. The point is the pipeline that built it:
+We built a small REST API for a to-do list. The app is deliberately simple — five CRUD endpoints plus a toggle action — because the app was never the point. The point is the pipeline that built it:
 
 ```
 Research Agent → Coding Agent → Review Agent → Testing Agent → Debug Agent (on failure) → Docs Agent (on pass)
@@ -26,7 +26,7 @@ We didn't just hope it would. We deliberately broke working code, more than once
 
 ## What it actually caught
 
-- **A real SQL injection pattern**, found by Review Agent in code we'd already shipped and marked passing — column names in a `PUT` handler were being built into a SQL string with an f-string instead of being safely parameterized. See [`review_report.md`](review_report.md).
+- **A latent dynamic-SQL risk**, found by Review Agent in code we'd already shipped and marked passing. The column names in a `PUT` handler were internally hard-coded, so the shipped code was not exploitable; nevertheless, the f-string pattern could have become injectable after a future change. The handler was rewritten with fixed SQL statements. See [`review_report.md`](review_report.md).
 - **A drifted spec** — our "locked" `docs/scope.md` had quietly fallen out of sync with what we'd actually approved and built. Review Agent caught it; we fixed it and versioned the scope doc.
 - **A deliberately introduced bug**, correctly diagnosed by Debug Agent down to the exact two lines responsible — not just a restated error message. See [`debug_report.md`](debug_report.md).
 - **The same category of bug, caught independently by CI** — we pushed broken code straight to GitHub Actions and watched it fail automatically, then confirmed it passed again after reverting.
@@ -72,7 +72,7 @@ Full endpoint docs and examples: [`app/README.md`](app/README.md). Interactive A
 pytest app/test_main.py -v
 ```
 
-13 tests, all passing, written independently of the code they test.
+23 tests, all passing, written independently of the application code they test.
 
 ## The honest parts
 

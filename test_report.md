@@ -1,6 +1,6 @@
 # Test Report — To-Do REST API
 
-**Date:** 2025-07-14  
+**Date:** 2026-09-26
 **Test file:** `app/test_main.py`  
 **Runner:** pytest 9.0.2, Python 3.11.9, Windows  
 **Scope reference:** `docs/scope.md` v2 (LOCKED), `design_brief.md`  
@@ -12,7 +12,7 @@
 
 | Result | Count |
 |--------|-------|
-| Passed | 17    |
+| Passed | 23    |
 | Failed | 0     |
 | Errors | 0     |
 
@@ -27,6 +27,7 @@
 | `test_create_todo` — happy path | 201, correct fields | 201 ✓ | ✅ PASS |
 | `test_create_todo_title_too_long` — 201-char title | 422 | 422 ✓ | ✅ PASS |
 | `test_create_todo_title_exactly_200_chars` *(new)* — title at 200-char boundary | 201, title preserved | 201 ✓ | ✅ PASS |
+| `test_create_todo_rejects_invalid_title` *(parameterized)* — missing, blank, and non-string titles | 422 for all 3 inputs | 422 ✓ | ✅ PASS |
 
 ### `GET /todos`
 
@@ -41,6 +42,7 @@
 |------|----------|--------|--------|
 | `test_get_todo` — known id | 200, correct data | 200 ✓ | ✅ PASS |
 | `test_get_todo_not_found` — unknown id | 404 `{"detail": "todo not found"}` | 404 ✓ | ✅ PASS |
+| `test_get_todo_rejects_non_integer_id` — non-integer id | 422 | 422 ✓ | ✅ PASS |
 
 ### `PUT /todos/{id}`
 
@@ -49,6 +51,8 @@
 | `test_update_todo` — update both fields | 200, updated fields | 200 ✓ | ✅ PASS |
 | `test_update_todo_not_found` — unknown id | 404 `{"detail": "todo not found"}` | 404 ✓ | ✅ PASS |
 | `test_update_todo_title_too_long` — 201-char title | 422 | 422 ✓ | ✅ PASS |
+| `test_update_todo_rejects_whitespace_title` — blank title | 422 | 422 ✓ | ✅ PASS |
+| `test_update_todo_rejects_non_boolean_done` — string instead of boolean | 422 | 422 ✓ | ✅ PASS |
 | `test_update_todo_empty_body_noop` *(new)* — empty body `{}` | 200, unchanged todo | 200, unchanged ✓ | ✅ PASS |
 
 ### `DELETE /todos/{id}`
@@ -82,8 +86,12 @@
 | `test_list_todos_empty` | `GET /todos` on an empty table returns `200` with `[]`, not an error | `design_brief.md` — `GET /todos`: returns array |
 | `test_update_todo_empty_body_noop` | `PUT` with `{}` is a no-op returning `200` with unchanged data | `design_brief.md` — neither field required; "no fields change… return 200" |
 | `test_delete_todo_double_delete` | Second DELETE on the same id returns `404` | `design_brief.md` — `DELETE`: `404` if not found |
+| `test_create_todo_rejects_invalid_title` | Missing, blank, and non-string titles are rejected | `design_brief.md` — title is required, non-empty, and a string |
+| `test_get_todo_rejects_non_integer_id` | A non-integer route id is rejected | `design_brief.md` — invalid ids return FastAPI validation errors |
+| `test_update_todo_rejects_whitespace_title` | A blank update title is rejected | `design_brief.md` — supplied titles must be non-empty |
+| `test_update_todo_rejects_non_boolean_done` | A non-boolean `done` value is rejected | `design_brief.md` — `done` is a boolean |
 
-No application code changes were required. All four new tests passed against the existing implementation.
+The strict-boolean schema and database helper were aligned with the specification, and all added validation tests passed.
 
 ---
 
@@ -94,14 +102,18 @@ No application code changes were required. All four new tests passed against the
 | `POST /todos` happy path | `test_create_todo` | ✅ |
 | `POST /todos` title exactly 200 chars | `test_create_todo_title_exactly_200_chars` | ✅ |
 | `POST /todos` title > 200 chars → 422 | `test_create_todo_title_too_long` | ✅ |
+| `POST /todos` missing, blank, or non-string title → 422 | `test_create_todo_rejects_invalid_title` | ✅ |
 | `GET /todos` happy path | `test_list_todos` | ✅ |
 | `GET /todos` empty table → `[]` | `test_list_todos_empty` | ✅ |
 | `GET /todos/{id}` happy path | `test_get_todo` | ✅ |
 | `GET /todos/{id}` 404 | `test_get_todo_not_found` | ✅ |
+| `GET /todos/{id}` non-integer id → 422 | `test_get_todo_rejects_non_integer_id` | ✅ |
 | `PUT /todos/{id}` happy path | `test_update_todo` | ✅ |
 | `PUT /todos/{id}` empty body no-op → 200 | `test_update_todo_empty_body_noop` | ✅ |
 | `PUT /todos/{id}` 404 | `test_update_todo_not_found` | ✅ |
 | `PUT /todos/{id}` title > 200 chars → 422 | `test_update_todo_title_too_long` | ✅ |
+| `PUT /todos/{id}` blank title → 422 | `test_update_todo_rejects_whitespace_title` | ✅ |
+| `PUT /todos/{id}` non-boolean `done` → 422 | `test_update_todo_rejects_non_boolean_done` | ✅ |
 | `DELETE /todos/{id}` happy path | `test_delete_todo` | ✅ |
 | `DELETE /todos/{id}` 404 | `test_delete_todo_not_found` | ✅ |
 | `DELETE /todos/{id}` double-delete → 404 | `test_delete_todo_double_delete` | ✅ |
@@ -124,4 +136,4 @@ Neither warning indicates a defect.
 
 **PASS — ready to merge.**
 
-All 6 endpoints pass. 4 new edge-case tests added (title at 200-char boundary, empty GET, no-op PUT with `{}`, double-DELETE), all passing. No application code changes required.
+All 6 endpoints pass. The suite now has 23 passing cases, including missing, blank, and non-string titles; invalid route IDs; and strict boolean validation. The validation and helper consistency fixes are verified.

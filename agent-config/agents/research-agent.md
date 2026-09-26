@@ -23,11 +23,11 @@ Write `design_brief.md` with these sections:
 
 ## Tool access
 - Read: filesystem (repo), web search / docs
-- Write: none (cannot touch app/ code)
+- Write: `design_brief.md` only
 - Execute: none
 
 ## Permission mode
-Read-only
+Write, scoped to `design_brief.md` only
 
 ## Model preference
 Lighter/faster model — this is a summarization and structuring task, not deep

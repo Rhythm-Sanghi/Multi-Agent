@@ -40,10 +40,12 @@ curl http://127.0.0.1:8000/todos
 pytest app/test_main.py -v
 ```
 
-Point out: **13 tests, 0 failures.** Call out the structure:
+Point out: **23 tests, 0 failures.** Call out the structure:
 - One happy-path test per endpoint
 - 404 tests for every route that takes an `{id}`
 - Title-length validation confirmed on both `POST` and `PUT`
+- Missing, blank, and non-string titles rejected with `422`
+- Non-boolean `done` values and non-integer route IDs rejected with `422`
 - The toggle tested in both directions (false→true→false) in a single test
 
 **Talking point:** Tests run against a throwaway SQLite file created fresh per test using pytest's `tmp_path` fixture. No shared state, no cleanup needed, no mocking.
@@ -82,10 +84,10 @@ The values were correctly parameterised, but the column names were interpolated 
 
 ### 6. Show the second review report (1 minute)
 
-Open `review_report.md` and point to the verdict: **APPROVED.** After the SQL injection fix, the second review pass found zero blocking issues. The two remaining informational notes are worth mentioning:
+Open `review_report.md` and point to the verdict: **APPROVED.** After the dynamic-SQL fix, the second review pass found zero blocking issues. The historical informational notes are worth mentioning:
 
-- `_get_conn()` reads the DB path from a module global rather than a parameter — works fine, flagged for consistency with `_init_db`.
-- A typo in the scope document (`completed` instead of `done`) — the code was correct; only the document needed fixing.
+- `_get_conn()` originally read the DB path from a module global rather than a parameter; it was subsequently aligned with `_init_db`.
+- A scope-document typo (`completed` instead of `done`) was identified and subsequently fixed.
 
 **Talking point:** The review agent correctly distinguished between things that must be fixed before merge and things that are worth noting but don't block. That separation is useful — it avoids the "fix everything or ship nothing" paralysis.
 
@@ -106,9 +108,9 @@ Open `review_report.md` and point to the verdict: **APPROVED.** After the SQL in
 
 ## Notable findings worth highlighting
 
-### The SQL injection catch
+### The dynamic-SQL risk caught in review
 
-The most concrete demonstration of value in the pipeline. The pattern (`f"UPDATE todos SET {set_clause}"`) is common in handwritten SQLite code and easy to overlook in review. The review agent flagged it correctly, described why it was risky even though it wasn't exploitable today, and the fix was applied in a single targeted change with no behaviour change.
+The most concrete demonstration of value in the pipeline. The pattern was common dynamic SQL and easy to overlook in review. The review agent flagged it as a latent risk: it was not exploitable in the shipped code because the field names were internally hard-coded, but a future change could have made it unsafe. The fix replaced the dynamic query with fixed SQL statements and did not change behaviour.
 
 ### Scope drift was caught before it became permanent
 

@@ -9,7 +9,7 @@
 
 ## Verdict: APPROVED
 
-No blocking issues found. Two informational notes are recorded below for completeness.
+No blocking issues were found. Two informational notes from this July review are recorded below for completeness; both were resolved in the September follow-up noted at the end of this report.
 
 ---
 
@@ -66,4 +66,15 @@ The v2 `docs/scope.md` data model section lists the completion field as `complet
 | Scope violations | 0 | 0 | 0 |
 | Code quality | 0 | 0 | 2 |
 
-**Overall verdict: APPROVED — no changes required to `app/main.py`.**
+**Overall verdict: APPROVED — no blocking changes required to `app/main.py`.**
+
+---
+
+## Follow-up update — 2026-09-26
+
+The two informational items above have now been resolved:
+
+- `_get_conn()` accepts an optional database path, matching `_init_db`'s convention while preserving the default application database path.
+- `docs/scope.md` consistently uses the `done` field name.
+
+Additional validation tests now cover blank and missing titles, invalid path IDs, and non-boolean `done` values. The current suite passes 23 tests.
