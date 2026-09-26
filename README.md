@@ -18,6 +18,17 @@ Research Agent → Coding Agent → Review Agent → Testing Agent → Debug Age
 
 Each agent is a custom mode inside IBM Bob, scoped to exactly the files it's allowed to touch. Research Agent can only write `design_brief.md`. Coding Agent can only write inside `app/`. Review Agent can only write `review_report.md`. And so on — nothing here relies on an agent simply choosing to behave; the boundaries are enforced by Bob's permission system.
 
+## Guarded hand-offs
+
+The original workflow used manual mode selection. The repository now includes a lightweight hand-off controller that automates the workflow checks without pretending to control IBM Bob: it verifies the previous stage's evidence, permits only valid transitions, requires a named human approver, and writes an audit entry before displaying the next Bob mode and its required inputs.
+
+```powershell
+python workflow/handoff_controller.py status
+python workflow/handoff_controller.py handoff review testing --approved-by "Team Member Name"
+```
+
+The controller never edits application code or bypasses IBM Bob's scoped permissions. See [`docs/workflow/README.md`](docs/workflow/README.md) for the transition rules and audit model.
+
 ## Why this exists
 
 Most "AI writes code" demos skip the parts of a real dev process that actually catch mistakes — a second opinion on security, an independent test pass, a real diagnosis when something breaks instead of a guess. We wanted to find out whether a team of narrowly-scoped agents, each handing off to the next, would actually catch things a single-pass approach wouldn't.
@@ -52,6 +63,7 @@ Full agent definitions: [`agent-config/agents/`](agent-config/agents/) (human-re
 agent-config/agents/     → Human-readable spec for each of the 6 agents
 app/                     → The to-do API itself, tests, and its own README
 docs/                    → Locked scope, lessons learned, demo script, run archives
+workflow/                → Guarded hand-off controller and its tests
 design_brief.md          → Current design brief (Research Agent's output)
 review_report.md         → Current review verdict (Review Agent's output)
 test_report.md           → Current test results (Testing Agent's output)

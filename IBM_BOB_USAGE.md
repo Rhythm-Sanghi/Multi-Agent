@@ -76,6 +76,10 @@ For every feature request, our process was:
 
 Every one of those mode switches was done manually, by us, clicking the mode selector or using Bob's slash-command shortcut for switching. We want to be direct about that because we initially assumed there was a more automated way to do it, and it's worth explaining exactly what happened there.
 
+### Guarded hand-off automation added after the original runs
+
+The actual IBM Bob mode switch remains a deliberate human action; we do not claim that an unsupported tool is controlling Bob. To reduce manual coordination errors while preserving that boundary, we added `workflow/handoff_controller.py` to the repository. Before a hand-off, it validates the evidence required by the previous stage, allows only a documented transition, requires a named human approver, appends an audit record, and prints the next Bob mode with its inputs and expected output. The controller never edits application code and never bypasses Bob's `fileRegex` permissions. This changes the process from an informal manual sequence into a human-approved, auditable hand-off system.
+
 ## The Orchestrator mode correction
 
 Partway through the project, we asked Bob's own chat directly whether there was a way to automatically chain our custom modes together instead of switching between them by hand. Bob answered in detail, describing a built-in "Orchestrator mode" that reads the `whenToUse` field on custom modes to decide how to delegate work automatically, and gave us a full comparison table contrasting it with a `switch_mode` tool it said could also handle mid-task mode transitions.

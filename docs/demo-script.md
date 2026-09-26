@@ -18,6 +18,21 @@ Then open <http://127.0.0.1:8000/docs> in a browser. The Swagger UI lists all si
 
 ---
 
+### 1a. Show the guarded hand-off controller (45 seconds)
+
+Run:
+
+```powershell
+python workflow/handoff_controller.py status
+python workflow/handoff_controller.py handoff review testing --approved-by "Presenter Name"
+```
+
+**Talking point:** The controller does not claim to switch IBM Bob modes itself. It validates the previous stage's evidence, requires a named human approval, records the transition, and prints exactly which Bob mode should run next. This keeps Bob's permission boundaries intact while removing informal hand-off decisions.
+
+For a live presentation, use a real presenter name and keep the generated `docs/workflow/handoff-log.jsonl` as evidence. If an audit log already exists, do not delete it.
+
+---
+
 ### 2. Run the smoke test live (1 minute)
 
 Run these two commands in sequence:
