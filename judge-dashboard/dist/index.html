@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Multi-Agent AI Software Team project status.">
+  <title>Multi-Agent Project</title>
+  <style>
+    :root{--bg:#ffffff;--text:#24292f;--muted:#57606a;--line:#d0d7de;--blue:#0969da;--green:#1a7f37}
+    *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font:15px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif}.wrap{max-width:900px;margin:0 auto;padding:0 20px}header{border-bottom:1px solid var(--line);padding:22px 0 0}h1{font-size:29px;line-height:1.2;margin:0 0 4px}h2{font-size:20px;margin:0 0 8px}.subtitle,.updated{margin:0;color:var(--muted)}.subtitle{font-size:14px}.updated{font-size:12px}nav{display:flex;gap:17px;margin-top:18px;padding-bottom:10px;font-size:14px}a{color:var(--blue);text-decoration:none}a:hover{text-decoration:underline}main{padding:26px 0 40px}section{margin-bottom:34px}.status-line{display:flex;justify-content:space-between;gap:15px;align-items:center;margin-bottom:26px}.ok{color:var(--green);font-weight:600;font-size:13px}.ok:before{content:"●";font-size:10px;margin-right:5px}table{width:100%;border-collapse:collapse;font-size:14px}th{text-align:left;color:var(--muted);font-size:12px;font-weight:600;padding:7px 8px;border-bottom:2px solid var(--line)}td{padding:9px 8px;border-bottom:1px solid var(--line);vertical-align:top}th:first-child,td:first-child{padding-left:0}th:last-child,td:last-child{padding-right:0}.pass{color:var(--green);font-weight:600}.file{font-family:ui-monospace,SFMono-Regular,Consolas,monospace;font-size:12px;color:var(--muted)}ul{padding-left:19px;margin:8px 0;color:#3d444d}li{margin:7px 0}.command{display:block;background:#f6f8fa;border:1px solid var(--line);padding:10px 12px;font:13px ui-monospace,SFMono-Regular,Consolas,monospace;max-width:440px}.button{margin-top:10px;background:#f6f8fa;border:1px solid var(--line);border-radius:3px;padding:6px 10px;color:var(--text);font-size:13px;cursor:pointer}.button:hover{background:#f3f4f6}.button:disabled{opacity:.65;cursor:default}.walkthrough{max-width:690px;border-top:1px solid var(--line);margin-top:14px}.walk-row{display:grid;grid-template-columns:24px 104px 1fr;gap:9px;padding:9px 0;border-bottom:1px solid var(--line);color:var(--muted);font-size:13px}.walk-row .marker{color:transparent}.walk-row.running{background:#f6f8fa;color:var(--text)}.walk-row.running .marker{color:var(--blue)}.walk-row.finished{color:var(--text)}.walk-row.finished .marker{color:var(--green)}.walk-row b{font-size:13px}.walk-log{margin-top:11px;min-height:38px;padding:9px 10px;background:#f6f8fa;border-left:3px solid var(--line);font:12px/1.45 ui-monospace,SFMono-Regular,Consolas,monospace;color:#3d444d}footer{border-top:1px solid var(--line);padding:16px 0 24px;color:var(--muted);font-size:12px}@media(max-width:560px){.status-line{align-items:flex-start;flex-direction:column;gap:4px}.workflow th:nth-child(2),.workflow td:nth-child(2){display:none}table{font-size:13px}td,th{padding:8px 4px}.walk-row{grid-template-columns:20px 82px 1fr}}
+  </style>
+</head>
+<body>
+  <header>
+    <div class="wrap">
+      <h1>Multi-Agent Project</h1>
+      <p class="subtitle">A small FastAPI to-do API built through a reviewed, multi-agent workflow.</p>
+      <nav><a href="#status">Status</a><a href="#workflow">Workflow</a><a href="#demo">Demo</a><a href="https://github.com/Rhythm-Sanghi/Multi-Agent" target="_blank" rel="noreferrer">Repository ↗</a></nav>
+    </div>
+  </header>
+  <main class="wrap">
+    <div class="status-line"><span class="ok">Build passing</span><span class="updated">Updated 26 September 2026</span></div>
+    <section id="status">
+      <h2>Status</h2>
+      <table>
+        <thead><tr><th>Item</th><th>Result</th><th>Details</th></tr></thead>
+        <tbody>
+          <tr><td>Scope</td><td class="pass">Locked</td><td>Six API endpoints.</td></tr>
+          <tr><td>Review</td><td class="pass">Approved</td><td>No blocking findings.</td></tr>
+          <tr><td>API tests</td><td class="pass">23 passed</td><td>Temporary SQLite database.</td></tr>
+          <tr><td>Workflow tests</td><td class="pass">3 passed</td><td>Hand-off controller checks.</td></tr>
+        </tbody>
+      </table>
+    </section>
+    <section id="workflow">
+      <h2>Workflow</h2>
+      <table class="workflow">
+        <thead><tr><th>Step</th><th>Purpose</th><th>Output</th><th>Status</th></tr></thead>
+        <tbody>
+          <tr><td>Research</td><td>Writes the implementation brief.</td><td class="file">design_brief.md</td><td class="pass">Done</td></tr>
+          <tr><td>Build</td><td>Implements the API.</td><td class="file">app/main.py</td><td class="pass">Done</td></tr>
+          <tr><td>Review</td><td>Checks code and scope.</td><td class="file">review_report.md</td><td class="pass">Approved</td></tr>
+          <tr><td>Testing</td><td>Runs independent tests.</td><td class="file">test_report.md</td><td class="pass">23 passed</td></tr>
+          <tr><td>Debug</td><td>Diagnoses failures before a fix.</td><td class="file">debug_report.md</td><td>Tested</td></tr>
+          <tr><td>Docs</td><td>Documents the verified API.</td><td class="file">app/README.md</td><td class="pass">Done</td></tr>
+        </tbody>
+      </table>
+    </section>
+    <section>
+      <h2>What the process caught</h2>
+      <ul>
+        <li>A risky dynamic SQL update pattern was replaced with fixed statements.</li>
+        <li>A deliberately wrong DELETE status code was diagnosed before the fix.</li>
+      </ul>
+    </section>
+    <section id="demo">
+      <h2>Demo</h2>
+      <p class="subtitle">This is a replay of the checked-in project evidence. The actual test command is shown below.</p>
+      <button class="button" id="run-demo" type="button">Run walkthrough</button>
+      <div class="walkthrough" aria-live="polite">
+        <div class="walk-row"><span class="marker">●</span><b>Scope</b><span>Read the locked API scope.</span></div>
+        <div class="walk-row"><span class="marker">●</span><b>Research</b><span>Show the design brief.</span></div>
+        <div class="walk-row"><span class="marker">●</span><b>Build</b><span>Show the FastAPI implementation.</span></div>
+        <div class="walk-row"><span class="marker">●</span><b>Review</b><span>Show the SQL finding and approval.</span></div>
+        <div class="walk-row"><span class="marker">●</span><b>Testing</b><span>Show the 23 passing API tests.</span></div>
+        <div class="walk-row"><span class="marker">●</span><b>Debug</b><span>Replay the DELETE status-code diagnosis.</span></div>
+        <div class="walk-row"><span class="marker">●</span><b>Docs</b><span>Finish with the API guide.</span></div>
+      </div>
+      <div class="walk-log" id="walk-log">Click “Run walkthrough” to begin.</div>
+      <p>For the actual live test run, use this from the project root:</p>
+      <code class="command">pytest app/test_main.py -v</code>
+    </section>
+  </main>
+  <footer><div class="wrap">Project evidence: scope, design brief, review report, test report, debug report, and hand-off log.</div></footer>
+  <script>
+    const rows=[...document.querySelectorAll(".walk-row")];
+    const log=document.getElementById("walk-log");
+    const button=document.getElementById("run-demo");
+    const notes=["Scope loaded: six endpoints, SQLite, and no extra product features.","Research complete: design_brief.md records the data model and edge cases.","Build complete: app/main.py contains the API implementation.","Review complete: the old dynamic SQL pattern was replaced with fixed statements.","Tests complete: 23 API tests passed against temporary databases.","Failure replay: DELETE returned 200; the diagnosis identified both status-code references.","Documentation complete: the README and demo script describe the verified API."];
+    button.addEventListener("click",function(){button.disabled=true;button.textContent="Walkthrough running…";rows.forEach(row=>row.className="walk-row");let index=0;function next(){if(index>0)rows[index-1].classList.replace("running","finished");if(index===rows.length){log.textContent="Walkthrough complete. Run the pytest command below for live verification.";button.disabled=false;button.textContent="Run walkthrough again";return}rows[index].classList.add("running");log.textContent=notes[index];index+=1;setTimeout(next,1200)}next()});
+  </script>
+</body>
+</html>
