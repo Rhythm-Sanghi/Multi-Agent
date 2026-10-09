@@ -36,3 +36,14 @@ The controller blocks an invalid transition or missing evidence. After an approv
 ## Why this is safe
 
 The controller never edits `app/`, never bypasses IBM Bob's file-level permissions, and never claims to run an agent on the team's behalf. It automates the workflow checks and evidence trail while leaving the human approval and actual Bob-mode execution explicit.
+
+
+## Report lifecycle
+
+The root `design_brief.md`, `review_report.md`, `test_report.md` and
+`debug_report.md` remain current controller inputs. Do not move them without
+updating the controller and Bob edit scopes. Preserve the JSONL hand-off log.
+For a completed run, keep any archived reports under a dated run directory
+with the source commit, commands, outcomes and limitations; do not duplicate
+the current reports merely to populate an archive. A report is not proof that
+later code passed the same checks.

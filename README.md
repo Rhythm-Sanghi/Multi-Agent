@@ -1,105 +1,62 @@
-# Multi-Agent AI Software Team — Built on IBM Bob
+# Multi-Agent software workflow
 
-A working demonstration of six specialized IBM Bob custom modes collaborating to research, build, review, test, debug, and document software. The workflow is manually orchestrated, with distinct roles, scoped permissions, and traceable file-based hand-offs.
+An IBM Bob custom-mode demonstration: six roles research, implement, review,
+test, debug and document a small FastAPI to-do API. Team members select the Bob
+mode and approve hand-offs; the Python controller checks evidence and records
+those transitions. It does not launch or switch the Bob modes itself.
 
-We're a team of five, built this on [IBM Bob](https://bob.ibm.com), and every claim below is backed by a file in this repo — not just described.
+## Run the API
 
-📄 [How we used IBM Bob](IBM_BOB_USAGE.md)
-
----
-
-## What's actually here
-
-We built a small REST API for a to-do list. The app is deliberately simple — five CRUD endpoints plus a toggle action — because the app was never the point. The point is the pipeline that built it:
-
-```
-Research Agent → Coding Agent → Review Agent → Testing Agent → Debug Agent (on failure) → Docs Agent (on pass)
+```sh
+python -m venv .venv
 ```
 
-Each agent is a custom mode inside IBM Bob, scoped to exactly the files it's allowed to touch. Research Agent can only write `design_brief.md`. Coding Agent can only write inside `app/`. Review Agent can only write `review_report.md`. And so on — nothing here relies on an agent simply choosing to behave; the boundaries are enforced by Bob's permission system.
+Activate the environment, then run from the repository root:
 
-## Guarded hand-offs
+```sh
+python -m pip install -r app/requirements.txt
+python -m uvicorn app.main:app --reload
+```
 
-The original workflow used manual mode selection. The repository now includes a lightweight hand-off controller that automates the workflow checks without pretending to control IBM Bob: it verifies the previous stage's evidence, permits only valid transitions, requires a named human approver, and writes an audit entry before displaying the next Bob mode and its required inputs.
+Open http://127.0.0.1:8000/docs. See [the API guide](app/README.md) for endpoints.
 
-```powershell
+```sh
+python -m pytest app/test_main.py workflow/test_handoff_controller.py -v
 python workflow/handoff_controller.py status
-python workflow/handoff_controller.py handoff review testing --approved-by "Team Member Name"
 ```
 
-The controller never edits application code or bypasses IBM Bob's scoped permissions. See [`docs/workflow/README.md`](docs/workflow/README.md) for the transition rules and audit model.
+## Workflow
 
-## Why this exists
+Research → Coding → Review → Testing → Docs. On a failed test pass, Debug
+records a diagnosis before the work returns to Coding.
 
-Most "AI writes code" demos skip the parts of a real dev process that actually catch mistakes — a second opinion on security, an independent test pass, a real diagnosis when something breaks instead of a guess. We wanted to find out whether a team of narrowly-scoped agents, each handing off to the next, would actually catch things a single-pass approach wouldn't.
+- [`.bob/custom_modes.yaml`](.bob/custom_modes.yaml): executable custom-mode configuration.
+- [`agent-config/agents/`](agent-config/agents/): human-readable role prompts.
+- [`IBM_BOB_USAGE.md`](IBM_BOB_USAGE.md): configuration and file permissions.
+- [`docs/workflow/README.md`](docs/workflow/README.md): controller gates and audit trail.
 
-We didn't just hope it would. We deliberately broke working code, more than once, to check.
+The root design brief, review, test and debug reports are agent-produced workflow
+inputs. They remain at the paths required by the controller and mode definitions.
+They are recorded evidence, not a live execution status or independent audit.
 
-## What it actually caught
+## Recorded findings
 
-- **A latent dynamic-SQL risk**, found by Review Agent in code we'd already shipped and marked passing. The column names in a `PUT` handler were internally hard-coded, so the shipped code was not exploitable; nevertheless, the f-string pattern could have become injectable after a future change. The handler was rewritten with fixed SQL statements. See [`review_report.md`](review_report.md).
-- **A drifted spec** — our "locked" `docs/scope.md` had quietly fallen out of sync with what we'd actually approved and built. Review Agent caught it; we fixed it and versioned the scope doc.
-- **A deliberately introduced bug**, correctly diagnosed by Debug Agent down to the exact two lines responsible — not just a restated error message. See [`debug_report.md`](debug_report.md).
-- **The same category of bug, caught independently by CI** — we pushed broken code straight to GitHub Actions and watched it fail automatically, then confirmed it passed again after reverting.
+- [Review report](review_report.md): fixed SQL statements replaced a risky dynamic
+  update pattern; the recorded finding does not establish an exploitable shipped injection.
+- [Debug report](debug_report.md): diagnosis of a deliberately introduced DELETE
+  response-code mismatch.
+- [Lessons learned](docs/lessons-learned.md): permission-scope and documentation
+  mistakes encountered during the project.
 
-## The six agents
+Use current CI/test results when evaluating the current code, rather than assuming
+that a checked-in report covers every later revision.
 
-| Agent | Job | Can write to |
-|---|---|---|
-| Research | Turns a feature request into a concrete design brief | `design_brief.md` only |
-| Coding | Implements exactly what the brief specifies | `app/` only |
-| Review | Checks for security, scope, and quality issues before testing | `review_report.md` only |
-| Testing | Writes and runs tests independently of Coding Agent's own tests | `app/test_*.py`, `test_report.md` |
-| Debug | Diagnoses root cause when tests fail, before Coding Agent attempts a fix | `debug_report.md` only |
-| Docs | Writes the final README and demo script, only after tests pass | `app/README.md`, `docs/demo-script.md` |
+## Demo and scope
 
-Full agent definitions: [`agent-config/agents/`](agent-config/agents/) (human-readable) and [`.bob/custom_modes.yaml`](.bob/custom_modes.yaml) (what Bob actually runs).
+[Demo guide](docs/demo-script.md). The authored page in `judge-dashboard/index.html`
+is a scripted walkthrough of recorded evidence; it does not run agents or tests.
+Serve it with `python -m http.server 8080 --directory judge-dashboard`.
 
-## Repo structure
-
-```
-.bob/                    → Bob's real agent config (custom_modes.yaml)
-.github/workflows/       → CI: runs the test suite on every push
-agent-config/agents/     → Human-readable spec for each of the 6 agents
-app/                     → The to-do API itself, tests, and its own README
-docs/                    → Locked scope, lessons learned, demo script, run archives
-workflow/                → Guarded hand-off controller and its tests
-design_brief.md          → Current design brief (Research Agent's output)
-review_report.md         → Current review verdict (Review Agent's output)
-test_report.md           → Current test results (Testing Agent's output)
-debug_report.md          → Most recent failure diagnosis (Debug Agent's output)
-```
-
-## Running it yourself
-
-```bash
-cd app
-pip install -r requirements.txt
-uvicorn main:app --reload
-```
-
-Full endpoint docs and examples: [`app/README.md`](app/README.md). Interactive API explorer at `http://127.0.0.1:8000/docs` once it's running.
-
-```bash
-pytest app/test_main.py -v
-```
-
-23 tests, all passing, written independently of the application code they test.
-
-## The honest parts
-
-Not everything went smoothly, and we think that's worth saying plainly rather than editing out:
-
-- IBM Bob's own chat interface confidently described a built-in "Orchestrator mode" for auto-chaining agents. It doesn't exist. When we asked Bob to double-check itself, it corrected course. We coordinated agent hand-offs manually instead — which turned out to work reliably across every run, not as a fallback we're apologizing for.
-- Testing Agent's write permissions initially blocked it from writing its own `test_report.md` — caught and fixed mid-project.
-- A documentation instruction from Docs Agent looked correct but failed on first test, because we ran it from the wrong directory — a reminder to test agent output rather than trust it on sight.
-
-Full account: [`docs/lessons-learned.md`](docs/lessons-learned.md).
-
-## Team
-
-Five of us split ownership across the six agents — research, coding, review & testing, debug & CI, and docs & presentation. Full breakdown in the project report.
-
----
-
-Built for [problem statement 5: Multi-Agent AI Systems] on IBM Bob.
+This is a local workflow demonstration, not an enterprise deployment. The to-do
+API deliberately omits authentication and production infrastructure. It was
+built by a five-person team for the IBM Bob multi-agent problem statement.
